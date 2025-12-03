@@ -9,13 +9,9 @@ flutter_app/pubspec.lock
 # Web app (adjust based on your framework - React/Vue/etc)
 web_app/node_modules/
 web_app/package-lock.json
-
-# Dashboard (adjust similarly)
-dashboard/node_modules/
-dashboard/dist/
-dashboard/build/
-dashboard/.env.local
-dashboard/package-lock.json
+web_app/dashboard/node_modules/
+web_app/dashboard/build/
+web_app/dashboard/package-lock.json
 
 # OS files
 .DS_Store
