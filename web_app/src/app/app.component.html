@@ -1,0 +1,141 @@
+<main class="main">
+  <div class="flex flex-col md:flex-row h-screen bg-gray-50 text-gray-800">
+
+    <nav class="w-full md:w-64 bg-slate-800 text-white p-4 shrink-0">
+      <h1 class="text-2xl font-extrabold mb-6 text-indigo-400">Internal Console</h1>
+      <div class="flex md:flex-col space-x-2 md:space-x-0 md:space-y-2 overflow-x-auto pb-2">
+
+        <button (click)="switchTab('tickets')" [class]="getNavButtonClasses('tickets')">
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 100 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 100-4V7a2 2 0 00-2-2H5z">
+            </path>
+          </svg>
+          Ticket Viewer
+        </button>
+
+        <button (click)="switchTab('kBase')" [class]="getNavButtonClasses('kBase')">
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+            </path>
+          </svg>
+          Knowledgebase Editor
+        </button>
+
+        <button (click)="switchTab('logs')" [class]="getNavButtonClasses('logs')">
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l-2 2M15 19V6l2 2m-2 4h-4">
+            </path>
+          </svg>
+          Live Logs Panel
+        </button>
+      </div>
+    </nav>
+
+    <main class="flex-1 p-4 md:p-8 overflow-y-auto">
+
+      @if (currentTab() === 'tickets') {
+      <section class="mb-8 p-6 bg-white shadow-xl rounded-lg">
+        <h2 class="text-3xl font-bold text-slate-700 mb-6 border-b pb-2">Ticket Viewer</h2>
+
+        <div class="flex flex-wrap gap-3 mb-6">
+          <button (click)="currentStatusFilter.set(null)" [class]="getFilterButtonClasses(null)">All ({{
+            tickets().length }})</button>
+          <button (click)="currentStatusFilter.set('Open')" [class]="getFilterButtonClasses('Open')">Open ({{
+            openTickets().length }})</button>
+          <button (click)="currentStatusFilter.set('In Progress')" [class]="getFilterButtonClasses('In Progress')">In
+            Progress ({{ inProgressTickets().length }})</button>
+          <button (click)="currentStatusFilter.set('Closed')" [class]="getFilterButtonClasses('Closed')">Closed ({{
+            closedTickets().length }})</button>
+        </div>
+
+        <div class="overflow-x-auto rounded-lg border">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-indigo-50">
+              <tr>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              @for (ticket of filteredTickets(); track ticket.id) {
+              <tr class="hover:bg-gray-50">
+                <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ ticket.id }}</td>
+                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{{ ticket.subject }}</td>
+                <td class="px-4 py-4 whitespace-nowrap">
+                  <span [class]="getStatusBadgeClasses(ticket.status)">{{ ticket.status }}</span>
+                </td>
+                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{{ ticket.createdAt }}</td>
+              </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        @if (filteredTickets().length === 0) {
+        <p class="text-center py-8 text-gray-500">No tickets match the current filter: {{ currentStatusFilter() || 'All'
+          }}.</p>
+        }
+      </section>
+      }
+
+      @if (currentTab() === 'kBase') {
+      <section class="mb-8 p-6 bg-white shadow-xl rounded-lg">
+        <h2 class="text-3xl font-bold text-slate-700 mb-6 border-b pb-2">Knowledgebase Editor</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label for="kb-editor" class="block text-sm font-medium text-gray-700 mb-2">Edit Content (Markdown
+              Supported)</label>
+            <textarea id="kb-editor" [(ngModel)]="knowledgeText" rows="15"
+              placeholder="Start typing your article here..."
+              class="w-full p-4 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition duration-150 ease-in-out font-mono text-sm"></textarea>
+            <button (click)="knowledgeText.set(knowledgeText() + ' Saved!')"
+              class="mt-4 px-6 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 transition duration-150 ease-in-out">
+              Save Draft
+            </button>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Live Preview</label>
+            <div
+              class="h-[calc(15*1.5rem+32px)] md:h-full overflow-y-auto p-4 bg-gray-100 border border-gray-300 rounded-lg prose max-w-none">
+              @if (knowledgeText().length > 0) {
+              <p class="whitespace-pre-wrap">{{ knowledgeText() }}</p>
+              } @else {
+              <p class="text-gray-400 italic">Preview will appear here as you type...</p>
+              }
+            </div>
+          </div>
+        </div>
+      </section>
+      }
+
+      @if (currentTab() === 'logs') {
+      <section class="p-6 bg-white shadow-xl rounded-lg">
+        <h2 class="text-3xl font-bold text-slate-700 mb-6 border-b pb-2">Live Logs Panel</h2>
+
+        <div #logContainer id="log-container"
+          class="bg-gray-900 text-green-400 p-4 font-mono h-[70vh] max-h-96 overflow-y-scroll rounded-lg text-sm border-2 border-gray-700">
+          @for (log of logs(); track $index) {
+          <div
+            [class]="log.includes('ERROR') ? 'text-red-400' : (log.includes('WARN') ? 'text-yellow-400' : 'text-green-400')">
+            <span class="text-gray-500 mr-2">[{{ getCurrentTime() }}]</span> {{ log }}
+          </div>
+          }
+        </div>
+
+        <p class="text-sm mt-3 text-gray-500">Simulating real-time events. Logs: {{ logs().length }}</p>
+      </section>
+      }
+
+    </main>
+  </div>
+</main>
