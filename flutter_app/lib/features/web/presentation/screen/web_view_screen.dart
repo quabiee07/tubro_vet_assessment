@@ -52,7 +52,10 @@ class _WebViewScreenState extends State<WebViewScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
+    
       appBar: AppBar(
+        backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
         title: const Text('Internal Tools Dashboard'),
@@ -62,7 +65,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
           if (_progress < 100)
             LinearProgressIndicator(
               value: _progress / 100,
-              color: primaryColor,
+              color: indigo,
               backgroundColor: greyLight,
             ),
           Expanded(child: WebViewWidget(controller: _controller)),

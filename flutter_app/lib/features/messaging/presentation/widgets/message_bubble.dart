@@ -65,7 +65,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                               topRight: Radius.circular(16),
                               bottomLeft: Radius.circular(16),
                             ),
-                      color: !widget.isCurrenUser ? cardColor : primaryColor,
+                      color: !widget.isCurrenUser ? cardColor : indigo,
                     ),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
@@ -114,7 +114,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                                     fontSize: 14,
                                     color: !widget.isCurrenUser
                                         ? theme.colorScheme.onSurface
-                                        : Colors.black,
+                                        : Colors.white,
                                   ),
                                 ),
                             ],
@@ -157,7 +157,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                                           color: !widget.isCurrenUser
                                               ? theme.colorScheme.onSurface
                                                     .withValues(alpha: .5)
-                                              : Colors.black.withValues(
+                                              : Colors.white.withValues(
                                                   alpha: .5,
                                                 ),
                                         ),

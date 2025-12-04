@@ -144,7 +144,7 @@ class _BottomNavBarState extends State<BottomNavBar>
                   asset: item.icon!,
                   height: widget.iconSize,
                   color: widget.currentIndex == index
-                      ? primaryColor
+                      ? indigo
                       : greyLight,
                 ),
                 const Gap(6),
@@ -159,7 +159,7 @@ class _BottomNavBarState extends State<BottomNavBar>
                         ? FontWeight.w600
                         : FontWeight.w400,
                     color: widget.currentIndex == index
-                        ? primaryColor
+                        ? indigo
                         : greyLight,
                   ),
                 ),

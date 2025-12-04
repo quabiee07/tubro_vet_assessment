@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:turbo_vets_assessment/core/domain/usecase/usecase.dart';
 import 'package:turbo_vets_assessment/features/messaging/domain/usecase/delete_message_usecase.dart';
 import 'package:turbo_vets_assessment/features/messaging/domain/usecase/get_messages_usecase.dart';
@@ -32,7 +33,10 @@ class MessageBloc extends Bloc<MessageEvent, MessageState> {
     final result = await getMessages(NoParams());
     result.fold(
       (failure) => emit(const MessageError('Failed to load messages')),
-      (messages) => emit(MessageLoaded(messages)),
+      (messages) {
+        debugPrint('✅ Loaded ${messages.length} messages');
+        emit(MessageLoaded(messages));
+      },
     );
   }
 
@@ -40,10 +44,25 @@ class MessageBloc extends Bloc<MessageEvent, MessageState> {
     SendMessageEvent event,
     Emitter<MessageState> emit,
   ) async {
+    debugPrint('📤 Sending message: ${event.message.text}');
     final result = await sendMessage(SendMessageParams(message: event.message));
+
     result.fold(
-      (failure) => emit(const MessageError('Failed to send message')),
-      (_) => add(LoadMessages()),
+      (failure) {
+        debugPrint('❌ Failed to send message');
+        emit(const MessageError('Failed to send message'));
+      },
+      (_) {
+        debugPrint('✅ Message sent successfully');
+        add(LoadMessages());
+
+        // Trigger auto-reply if enabled and message is from user
+        if (event.triggerAutoReply &&
+            !_agent.isAgentMessage(event.message.sender)) {
+          debugPrint('🤖 Triggering auto-reply for: ${event.message.text}');
+          add(TriggerAutoReplyEvent(event.message.text));
+        }
+      },
     );
   }
 
@@ -51,10 +70,18 @@ class MessageBloc extends Bloc<MessageEvent, MessageState> {
     SendAgentMessageEvent event,
     Emitter<MessageState> emit,
   ) async {
+    debugPrint('🤖 Sending agent message: ${event.message.text}');
     final result = await sendMessage(SendMessageParams(message: event.message));
+
     result.fold(
-      (failure) => emit(const MessageError('Failed to send agent message')),
-      (_) => add(LoadMessages()),
+      (failure) {
+        debugPrint('❌ Failed to send agent message');
+        emit(const MessageError('Failed to send agent message'));
+      },
+      (_) {
+        debugPrint('✅ Agent message sent successfully');
+        add(LoadMessages());
+      },
     );
   }
 
@@ -73,14 +100,22 @@ class MessageBloc extends Bloc<MessageEvent, MessageState> {
     TriggerAutoReplyEvent event,
     Emitter<MessageState> emit,
   ) async {
-    // Get intelligent response based on user message
-    final agentMessage = await _agent.getDelayedResponse(
-      event.userMessage,
-      minSeconds: 1,
-      maxSeconds: 3,
-    );
+    debugPrint('⏳ Generating auto-reply for: ${event.userMessage}');
 
-    // Send agent message
-    add(SendAgentMessageEvent(agentMessage));
+    try {
+      // Get intelligent response based on user message with delay
+      final agentMessage = await _agent.getDelayedResponse(
+        event.userMessage,
+        minSeconds: 1,
+        maxSeconds: 3,
+      );
+
+      debugPrint('💬 Agent response: ${agentMessage.text}');
+
+      // Send agent message
+      add(SendAgentMessageEvent(agentMessage));
+    } catch (e) {
+      debugPrint('❌ Error in auto-reply: $e');
+    }
   }
 }

@@ -6,7 +6,7 @@ import 'package:turbo_vets_assessment/core/presentation/res/fonts.dart';
 import 'package:turbo_vets_assessment/core/presentation/res/images.dart';
 import 'package:turbo_vets_assessment/core/presentation/res/vectors.dart';
 import 'package:turbo_vets_assessment/core/presentation/utilities/date_util.dart';
-import 'package:turbo_vets_assessment/core/presentation/utilities/image_picker_util.dart';
+import 'package:turbo_vets_assessment/services/image_picker_service.dart';
 import 'package:turbo_vets_assessment/core/presentation/widgets/clickable.dart';
 import 'package:turbo_vets_assessment/core/presentation/widgets/svg_image.dart';
 import 'package:turbo_vets_assessment/features/messaging/domain/entities/message.dart';
@@ -32,7 +32,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
   final String _currentUser = 'Me';
   final ValueNotifier<bool> _isVisible = ValueNotifier(false);
   final ValueNotifier<bool> _isAgentTyping = ValueNotifier(false);
-  final ImagePickerUtil _imagePickerUtil = ImagePickerUtil();
+  final ImagePickerService _imagePickerUtil = ImagePickerService();
 
   @override
   void initState() {
@@ -56,7 +56,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
       if (!mounted) return;
 
       context.read<MessageBloc>().add(
-        SendMessageEvent(greetingMessage, triggerAutoReply: true),
+        SendMessageEvent(greetingMessage, triggerAutoReply: false),
       );
     });
   }
@@ -67,6 +67,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
     _scrollController.dispose();
     _chatFocus.dispose();
     _isVisible.dispose();
+    _isAgentTyping.dispose();
     super.dispose();
   }
 
@@ -102,7 +103,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
     _scrollToBottom();
 
     // Hide typing indicator after delay
-    Future.delayed(Duration(seconds: 3), () {
+    Future.delayed(Duration(seconds: 1), () {
       if (mounted) {
         _isAgentTyping.value = false;
       }
@@ -131,7 +132,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
       context.read<MessageBloc>().add(SendMessageEvent(message));
       _scrollToBottom();
 
-      Future.delayed(Duration(seconds: 3), () {
+      Future.delayed(Duration(seconds: 1), () {
         if (mounted) {
           _isAgentTyping.value = false;
         }
@@ -156,7 +157,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
       context.read<MessageBloc>().add(SendMessageEvent(message));
       _scrollToBottom();
 
-      Future.delayed(Duration(seconds: 3), () {
+      Future.delayed(Duration(seconds: 1), () {
         if (mounted) {
           _isAgentTyping.value = false;
         }
@@ -176,7 +177,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: Icon(Icons.photo_library, color: primaryColor),
+              leading: Icon(Icons.photo_library, color: indigo),
               title: Text('Choose from Gallery'),
               onTap: () {
                 Navigator.pop(context);
@@ -184,7 +185,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
               },
             ),
             ListTile(
-              leading: Icon(Icons.camera_alt, color: primaryColor),
+              leading: Icon(Icons.camera_alt, color: indigo),
               title: Text('Take Photo'),
               onTap: () {
                 Navigator.pop(context);
@@ -281,19 +282,38 @@ class _MessagesScreenState extends State<MessagesScreen> {
         children: [
           Expanded(
             child: BlocBuilder<MessageBloc, MessageState>(
+              // listener: (context, state) {
+              //   if (state is MessageLoaded) {
+              //     _isAgentTyping.value = false;
+              //     if (state.messages.isEmpty && !_hasShownGreeting) {
+              //       _sendInitialGreeting();
+              //     }
+
+              //     _scrollToBottom();
+              //   }
+              // },
               builder: (context, state) {
                 if (state is MessageLoading) {
                   return const Center(child: CircularProgressIndicator());
                 } else if (state is MessageLoaded) {
+                  if (state.messages.isEmpty) {
+                    return Center(
+                      child: Text(
+                        'No messages yet. Start a conversation!',
+                        style: TextStyle(color: greyLight),
+                      ),
+                    );
+                  }
+
                   return Stack(
                     children: [
                       SizedBox(
                         height: MediaQuery.of(context).size.height,
                         child: GlowingOverscrollIndicator(
                           axisDirection: AxisDirection.up,
-                          color: primaryColor,
+                          color: indigo,
                           child: ListView.builder(
-                            padding: const EdgeInsets.all(16),
+                            padding: const EdgeInsets.all(10),
                             itemCount: state.messages.length,
                             controller: _scrollController,
                             reverse: true,
@@ -314,7 +334,24 @@ class _MessagesScreenState extends State<MessagesScreen> {
                           ),
                         ),
                       ),
-
+                      Align(
+                        alignment: Alignment.bottomLeft,
+                        child: ValueListenableBuilder<bool>(
+                          valueListenable: _isAgentTyping,
+                          builder: (context, isTyping, _) {
+                            if (isTyping) {
+                              return Padding(
+                                padding: const EdgeInsets.only(
+                                  left: 16,
+                                  bottom: 8,
+                                ),
+                                child: TypingIndicator(),
+                              );
+                            }
+                            return SizedBox.shrink();
+                          },
+                        ),
+                      ),
                       Align(
                         alignment: Alignment.bottomRight,
                         child: ValueListenableBuilder(
@@ -332,7 +369,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                       ),
                                       decoration: BoxDecoration(
                                         shape: BoxShape.circle,
-                                        color: theme.primaryColor,
+                                        color: purple,
                                       ),
                                       child: const Center(
                                         child: Icon(
@@ -350,28 +387,14 @@ class _MessagesScreenState extends State<MessagesScreen> {
                     ],
                   );
                 } else if (state is MessageError) {
+                  _isAgentTyping.value = false;
                   return Center(child: Text(state.message));
                 }
                 return const SizedBox();
               },
             ),
           ),
-          Align(
-            alignment: Alignment.bottomLeft,
-            child: ValueListenableBuilder<bool>(
-              valueListenable: _isAgentTyping,
-              builder: (context, isTyping, _) {
-                if (isTyping) {
-                  return Positioned(
-                    bottom: 16,
-                    left: 16,
-                    child: TypingIndicator(),
-                  );
-                }
-                return SizedBox.shrink();
-              },
-            ),
-          ),
+
           Align(
             alignment: Alignment.bottomCenter,
             child: Padding(
@@ -398,11 +421,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                               ),
                             ),
                             child: Center(
-                              child: Icon(
-                                Icons.image,
-                                color: primaryColor,
-                                size: 24,
-                              ),
+                              child: Icon(Icons.image, color: indigo, size: 24),
                             ),
                           ),
                         ),
@@ -467,13 +486,13 @@ class _MessagesScreenState extends State<MessagesScreen> {
                             width: 50,
                             decoration: const BoxDecoration(
                               shape: BoxShape.circle,
-                              color: primaryColor,
+                              color: indigo,
                             ),
                             child: Center(
                               child: SvgImage(
                                 asset: send,
-                                height: 24,
-                                color: Colors.black,
+                                height: 25,
+                                color: Colors.white,
                               ),
                             ),
                           ),
