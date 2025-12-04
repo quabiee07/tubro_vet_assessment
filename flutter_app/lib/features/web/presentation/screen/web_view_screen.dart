@@ -43,6 +43,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
           },
           onWebResourceError: (WebResourceError error) {
             debugPrint('Web resource error: $error');
+            debugPrint('error: ${error.description}');
           },
         ),
       )
