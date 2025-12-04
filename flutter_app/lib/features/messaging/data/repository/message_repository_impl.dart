@@ -1,6 +1,6 @@
 
 import 'package:dartz/dartz.dart';
-import 'package:turbo_vets_assessment/core/errors/failure.dart';
+import 'package:turbo_vets_assessment/core/domain/errors/failure.dart';
 import 'package:turbo_vets_assessment/features/messaging/data/data_source/message_local_data_source.dart';
 import 'package:turbo_vets_assessment/features/messaging/data/models/message_model.dart';
 import 'package:turbo_vets_assessment/features/messaging/domain/entities/message.dart';

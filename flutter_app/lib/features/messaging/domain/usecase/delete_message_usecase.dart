@@ -1,6 +1,6 @@
 import 'package:dartz/dartz.dart';
-import 'package:turbo_vets_assessment/core/errors/failure.dart';
-import 'package:turbo_vets_assessment/core/usecase/usecase.dart';
+import 'package:turbo_vets_assessment/core/domain/errors/failure.dart';
+import 'package:turbo_vets_assessment/core/domain/usecase/usecase.dart';
 import 'package:turbo_vets_assessment/features/messaging/domain/repository/messaging_repository.dart';
 class DeleteMessage implements UseCase<void, DeleteMessageParams> {
   final MessageRepository repository;

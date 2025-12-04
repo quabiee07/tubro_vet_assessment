@@ -1,0 +1,1 @@
+const avatar = 'assets/images/avatar_3.png';

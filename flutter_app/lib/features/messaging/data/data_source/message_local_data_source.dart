@@ -1,5 +1,5 @@
 import 'package:path/path.dart';
-import 'package:turbo_vets_assessment/core/constants/constants.dart';
+import 'package:turbo_vets_assessment/core/domain/constants/constants.dart';
 import 'package:turbo_vets_assessment/features/messaging/data/models/message_model.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -31,9 +31,19 @@ class MessageLocalDataSourceImpl implements MessageLocalDataSource {
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             text TEXT NOT NULL,
             sender TEXT NOT NULL,
-            timestamp TEXT NOT NULL
+            timestamp TEXT NOT NULL,
+            type INTEGER NOT NULL DEFAULT 0,
+            imagePath TEXT
           )
         ''');
+      },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          await db.execute(
+            'ALTER TABLE messages ADD COLUMN type INTEGER NOT NULL DEFAULT 0',
+          );
+          await db.execute('ALTER TABLE messages ADD COLUMN imagePath TEXT');
+        }
       },
     );
   }
@@ -44,7 +54,7 @@ class MessageLocalDataSourceImpl implements MessageLocalDataSource {
       final db = await database;
       final messages = await db.query(
         Constants.DATABASE_NAME,
-        orderBy: 'timestamp ASC',
+        orderBy: 'timestamp DESC',
       );
       return messages.map((item) => MessageModel.fromMap(item)).toList();
     } catch (e) {
